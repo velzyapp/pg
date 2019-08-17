@@ -9,4 +9,10 @@ describe("CRUD Ops", async () => {
     const saved = await Velzy.products.get(100);
     assert.equal(50, saved.price)
   });
+
+  it("says goodbye and deletes", async () => {
+    await Velzy.products.delete(100);
+    const found = await Velzy.products.get(100);
+    assert(!found)
+  })
 })
