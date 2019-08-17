@@ -1,16 +1,19 @@
 set search_path=velzy;
-drop function if exists find(varchar, jsonb,varchar);
 create function find(
 	collection varchar,
 	term jsonb,
 	schema varchar default 'velzy'
 )
-returns setof jsonb
+returns table(
+	id bigint,
+	body jsonb,
+	created_at timestamptz
+)
 as $$
 begin
 	return query
 	execute format('
-		select id, body from %s.%s
+		select id, body,created_at from %s.%s
 		where body @> %L;
 ',schema,collection, term);
 

@@ -16,8 +16,6 @@ begin
 	-- save it - this will also update the search
 	perform velzy.save(collection => collection, schema => schema, doc => res);
 
-  --notification
-  perform pg_notify('velzy',concat(collection, ':update:',saved.id));
 end;
 
 $$ language plpgsql;

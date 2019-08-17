@@ -1,18 +1,21 @@
 set search_path=velzy;
-drop function if exists find_one(varchar, jsonb,varchar);
 create function find_one(
 	collection varchar,
 	term jsonb,
-	schema varchar default 'velzy',
-	out res jsonb
+	schema varchar default 'velzy'
+)
+returns table(
+	id bigint,
+	body jsonb,
+	created_at timestamptz
 )
 as $$
 begin
-
+	return query
 	execute format('
-		select body from %s.%s
+		select id, body,created_at from %s.%s
 		where body @> %L limit 1;
-',schema,collection, term) into res;
+',schema,collection, term);
 
 end;
 $$ language plpgsql;
