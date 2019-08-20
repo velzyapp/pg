@@ -1,7 +1,7 @@
 {
   "name": "velzydb",
-  "version": "0.0.1",
-  "description": "A PostgreSQL DocumentDB Library for Node",
+  "version": "0.0.2",
+  "description": "A Realtime PostgreSQL DocumentDB Library for Node",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,6 +17,10 @@
   },
   "homepage": "https://github.com/velzyapp/pg#readme",
   "dependencies": {
-    "pg-promise": "^9.0.2"
+    "graphql": "^14.4.2",
+    "graphql-tools": "^4.0.5",
+    "pg-promise": "^9.0.2",
+    "underscore": "^1.9.1",
+    "underscore.string": "^3.3.5"
   }
 }

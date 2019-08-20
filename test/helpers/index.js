@@ -1,4 +1,4 @@
-const Velzy = require("../../lib");
+const Velzy = require("../../index");
 const assert = require("assert");
 
 global.Velzy = Velzy;
