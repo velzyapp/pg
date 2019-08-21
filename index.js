@@ -71,5 +71,6 @@ class Velzy {
   }
 }
 
-
-module.exports = new Velzy();
+const velzy = new Velzy();
+console.log(velzy);
+module.exports = velzy;
