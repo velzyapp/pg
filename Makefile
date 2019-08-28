@@ -20,7 +20,7 @@ functions:
 	@cat $(FUNCTIONS) >> $(BUILD)
 
 test: clean install
-	. ./test.sh
+	psql $(DB) < test_data.sql
 
 build: functions
 	cp $(BUILD) ../$(CURRDIR)/cli/db.sql

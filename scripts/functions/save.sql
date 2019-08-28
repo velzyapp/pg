@@ -1,10 +1,9 @@
 set search_path=velzy;
-drop function if exists save(text, jsonb,text[],text);
+drop function if exists save(text, jsonb,text[]);
 create function save(
 	collection text,
 	doc jsonb,
 	search text[] = array['name','email','first','first_name','last','last_name','description','title','city','state','address','street', 'company'],
-	schema text default 'velzy',
 	out res jsonb
 )
 as $$
@@ -27,24 +26,16 @@ begin
 										values (%L, %L)
 										on conflict (id)
 										do update set body = excluded.body
-										returning *',schema,collection, doc -> 'id', doc) into saved;
+										returning *','velzy',collection, doc -> 'id', doc) into saved;
     res := saved.body;
 
 	else
 
-    --this is dumb, but I need to make sure the key is merged
-    --nextval is transactional so it won't be repeated
-    --this is so hacky... Craig... HELP>>>
-    next_key := nextval(pg_get_serial_sequence(concat(schema,'.', collection), 'id'));
-
-    --merge the new id into the JSON
-    select(doc || format('{"id": %s}', next_key::text)::jsonb) into res;
-
     --save it, making sure the new id is also the actual id :)
-		execute format('insert into %s.%s (id, body) values (%s, %L) returning *', schema,collection, next_key, res) into saved;
-
+		execute format('insert into %s.%s (body) values (%L) returning *', 'velzy',collection, doc) into saved;
+		select(doc || format('{"id": %s}', saved.id::text)::jsonb) into res;
+		execute format('update %s.%s set body=%L where id=%s','velzy',collection,res,saved.id);
 	end if;
-
 
 	-- do it automatically MMMMMKKK?
 	foreach search_key in array search
@@ -63,11 +54,11 @@ begin
 		end if;
 	end loop;
 	if search_params is not null then
-		execute format('update %s.%s set search=to_tsvector(%L) where id=%s',schema,collection,search_params,saved.id);
+		execute format('update %s.%s set search=to_tsvector(%L) where id=%s','velzy',collection,search_params,saved.id);
 	end if;
 
   --update the updated_at bits no matter what
-  execute format('update %s.%s set updated_at = now() where id=%s',schema,collection, saved.id);
+  execute format('update %s.%s set updated_at = now() where id=%s','velzy',collection, saved.id);
 
 end;
 

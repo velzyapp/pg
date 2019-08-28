@@ -14,4 +14,4 @@ begin
 		'''velzy''');
 
 end;
-$$ language plpgsql;
+$$ language plpgsql STABLE;

@@ -14,7 +14,7 @@ begin
 	execute format('select body || %L from %s.%s where id=%s', set,schema,collection, id) into res;
 
 	-- save it - this will also update the search
-	perform velzy.save(collection => collection, schema => schema, doc => res);
+	perform velzy.save(collection => collection, doc => res);
 
 end;
 

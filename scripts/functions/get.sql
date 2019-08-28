@@ -1,10 +1,15 @@
-set search_path=velzy;
-drop function if exists get(varchar,int);
-create function get(collection varchar, id int, out res jsonb)
+create function get(collection varchar, did int)
+returns table(
+id bigint,
+body jsonb,
+created_at timestamptz,
+updated_at timestamptz
+)
 as $$
 
 begin
-		execute format('select body from velzy.%s where id=%s',collection, id) into res;
+	return query
+	execute format('select id, body, created_at, updated_at from velzy.%s where id=%s limit 1',collection, did);
 end;
 
 $$ language plpgsql;
