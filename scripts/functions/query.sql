@@ -29,7 +29,7 @@ begin
 		order by %s %s
 		limit %s
 		offset %s
-','velzy',collection, where_clause, order_by, order_dir, limiter, offsetter);
+','public',collection, where_clause, order_by, order_dir, limiter, offsetter);
 
 end;
 $$ language plpgsql;

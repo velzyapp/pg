@@ -1,10 +1,10 @@
 set search_path=velzy;
-drop function if exists modify(varchar, int, jsonb, varchar);
+drop function if exists modify(text, int, jsonb, text);
 create function modify(
-	collection varchar,
+	collection text,
 	id int,
 	set jsonb,
-	schema varchar default 'velzy',
+	schema text default 'public',
 	out res jsonb
 )
 as $$

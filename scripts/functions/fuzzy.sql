@@ -1,9 +1,9 @@
 set search_path=velzy;
 create function fuzzy(
-	collection varchar,
-	key varchar,
-	term varchar,
-	schema varchar default 'velzy'
+	collection text,
+	key text,
+	term text,
+	schema text default 'public'
 )
 returns table(
 	id bigint,

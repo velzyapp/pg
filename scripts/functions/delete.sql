@@ -4,7 +4,7 @@ create function delete(collection varchar, id int, out res bool)
 as $$
 
 begin
-		execute format('delete from velzy.%s where id=%s returning *',collection, id);
+		execute format('delete from public.%s where id=%s returning *',collection, id);
 		res := true;
 end;
 

@@ -3,6 +3,8 @@ drop schema if exists velzy cascade;
 create schema if not exists velzy;
 create extension pg_stat_statements with schema velzy;
 create extension pgcrypto with schema velzy;
+
+--add tables for users, permissions and possibly API keys
 set search_path=velzy;
 drop function if exists create_collection(varchar);
 create function create_collection(
@@ -10,26 +12,25 @@ create function create_collection(
 	out res jsonb
 )
 as $$
-declare
-	schema varchar := 'velzy';
+
 begin
 	res := '{"created": false, "message": null}';
 	-- see if table exists first
-  if not exists (select 1 from information_schema.tables where table_schema = schema AND table_name = collection) then
+  if not exists (select 1 from information_schema.tables where table_schema = 'public' AND table_name = collection) then
 
-		execute format('create table %s.%s(
+		execute format('create table public.%s(
             id bigserial primary key not null,
             body jsonb not null,
             search tsvector,
             created_at timestamptz not null default now(),
             updated_at timestamptz not null default now()
-          );',schema,collection);
+          );',collection);
 
 		--indexing
-    execute format('create index idx_search_%s on %s.%s using GIN(search)',collection,schema,collection);
-    execute format('create index idx_json_%s on %s.%s using GIN(body jsonb_path_ops)',collection,schema,collection);
+    execute format('create index idx_search_%s on public.%s using GIN(search)',collection,collection);
+    execute format('create index idx_json_%s on public.%s using GIN(body jsonb_path_ops)',collection,collection);
 
-		execute format('create trigger %s_notify_change AFTER INSERT OR UPDATE OR DELETE ON %s.%s
+		execute format('create trigger %s_notify_change AFTER INSERT OR UPDATE OR DELETE ON public.%s
 		FOR EACH ROW EXECUTE PROCEDURE velzy.notify_change();', collection, schema, collection);
 
     res := '{"created": true, "message": "Table created"}';
@@ -47,11 +48,12 @@ language plpgsql;
 set search_path=velzy;
 
 drop function if exists create_lookup_column(varchar,varchar, varchar);
-create function create_lookup_column(collection varchar, schema varchar, key varchar, out res bool)
+create function create_lookup_column(collection varchar, key varchar, out res bool)
 as $$
 declare
 	column_exists int;
-  lookup_key varchar := 'lookup_' || key;
+  lookup_key text := 'lookup_' || key;
+  schema text := 'public';
 begin
 		execute format('SELECT count(1)
 										FROM information_schema.columns
@@ -85,16 +87,27 @@ create function delete(collection varchar, id int, out res bool)
 as $$
 
 begin
-		execute format('delete from velzy.%s where id=%s returning *',collection, id);
+		execute format('delete from public.%s where id=%s returning *',collection, id);
 		res := true;
 end;
 
 $$ language plpgsql;
 set search_path=velzy;
-drop function if exists drop_lookup_columns(varchar, varchar);
+create function drop_collection(
+	collection text,
+  out res bool
+)
+as $$
+begin
+	execute format('drop table %s.%s cascade;','public',collection);
+  perform pg_notify('velzy.change',concat(collection, ':table_dropped:',0));
+end;
+$$ language plpgsql;
+set search_path=velzy;
+drop function if exists drop_lookup_columns(text, text);
 create function drop_lookup_columns(
-	collection varchar,
-	schema varchar default 'velzy',
+	collection text,
+	schema text default 'public',
 	out res bool
 )
 as $$
@@ -111,12 +124,12 @@ begin
 end;
 $$ language plpgsql;
 set search_path=velzy;
-drop function if exists ends_with(varchar, varchar, varchar, varchar);
+drop function if exists ends_with(text, text, text, text);
 create function ends_with(
-	collection varchar,
-	key varchar,
-	term varchar,
-	schema varchar default 'velzy'
+	collection text,
+	key text,
+	term text,
+	schema text default 'public'
 )
 returns table(
 	id bigint,
@@ -140,7 +153,7 @@ set search_path=velzy;
 create function find_one(
 	collection varchar,
 	term jsonb,
-	schema varchar default 'velzy'
+	schema text default 'public'
 )
 returns table(
 	id bigint,
@@ -159,10 +172,10 @@ end;
 $$ language plpgsql;
 set search_path=velzy;
 create function fuzzy(
-	collection varchar,
-	key varchar,
-	term varchar,
-	schema varchar default 'velzy'
+	collection text,
+	key text,
+	term text,
+	schema text default 'public'
 )
 returns table(
 	id bigint,
@@ -179,7 +192,7 @@ begin
 
 end;
 $$ language plpgsql;
-create function get(collection varchar, did int)
+create function get(collection text, did int)
 returns table(
 id bigint,
 body jsonb,
@@ -190,17 +203,17 @@ as $$
 
 begin
 	return query
-	execute format('select id, body, created_at, updated_at from velzy.%s where id=%s limit 1',collection, did);
+	execute format('select id, body, created_at, updated_at from public.%s where id=%s limit 1',collection, did);
 end;
 
 $$ language plpgsql;
 set search_path=velzy;
-drop function if exists modify(varchar, int, jsonb, varchar);
+drop function if exists modify(text, int, jsonb, text);
 create function modify(
-	collection varchar,
+	collection text,
 	id int,
 	set jsonb,
-	schema varchar default 'velzy',
+	schema text default 'public',
 	out res jsonb
 )
 as $$
@@ -262,7 +275,7 @@ begin
 		order by %s %s
 		limit %s
 		offset %s
-','velzy',collection, where_clause, order_by, order_dir, limiter, offsetter);
+','public',collection, where_clause, order_by, order_dir, limiter, offsetter);
 
 end;
 $$ language plpgsql;
@@ -284,6 +297,7 @@ declare
 	search_key text;
 	search_params text;
   search_term text;
+  schema text := 'public';
 begin
 	-- make sure the table exists
 	perform velzy.create_collection(collection => collection);
@@ -294,15 +308,15 @@ begin
 										values (%L, %L)
 										on conflict (id)
 										do update set body = excluded.body
-										returning *','velzy',collection, doc -> 'id', doc) into saved;
+										returning *',schema,collection, doc -> 'id', doc) into saved;
     res := saved.body;
 
 	else
 
     --save it, making sure the new id is also the actual id :)
-		execute format('insert into %s.%s (body) values (%L) returning *', 'velzy',collection, doc) into saved;
+		execute format('insert into %s.%s (body) values (%L) returning *', schema,collection, doc) into saved;
 		select(doc || format('{"id": %s}', saved.id::text)::jsonb) into res;
-		execute format('update %s.%s set body=%L where id=%s','velzy',collection,res,saved.id);
+		execute format('update %s.%s set body=%L where id=%s',schema,collection,res,saved.id);
 	end if;
 
 	-- do it automatically MMMMMKKK?
@@ -317,28 +331,30 @@ begin
       search_term := replace(search_term, '.net',' ');
       search_term := replace(search_term, '.org',' ');
       search_term := replace(search_term, '.edu',' ');
+      search_term := replace(search_term, '.io',' ');
 
 			search_params :=  concat(search_params,' ', search_term);
 		end if;
 	end loop;
 	if search_params is not null then
-		execute format('update %s.%s set search=to_tsvector(%L) where id=%s','velzy',collection,search_params,saved.id);
+		execute format('update %s.%s set search=to_tsvector(%L) where id=%s',schema,collection,search_params,saved.id);
 	end if;
 
   --update the updated_at bits no matter what
-  execute format('update %s.%s set updated_at = now() where id=%s','velzy',collection, saved.id);
+  execute format('update %s.%s set updated_at = now() where id=%s',schema,collection, saved.id);
 
 end;
 
 $$ language plpgsql;
 set search_path=velzy;
-create function search(collection varchar, term varchar, schema varchar default 'velzy')
+create function search(collection text, term text)
 returns table(
 	result jsonb,
 	rank float4
 )
 as $$
 declare
+  schema text :='public';
 begin
 	return query
 	execute format('select body, ts_rank_cd(search,plainto_tsquery(''"%s"'')) as rank
@@ -351,10 +367,10 @@ end;
 $$ language plpgsql;
 set search_path=velzy;
 create function starts_with(
-	collection varchar,
-	key varchar,
-	term varchar,
-	schema varchar default 'velzy'
+	collection text,
+	key text,
+	term text,
+	schema text default 'public'
 )
 returns table(
 	id bigint,
@@ -386,7 +402,7 @@ begin
 	SELECT relname::text as name,n_live_tup::int as rows
   FROM pg_stat_user_tables
 	where schemaname=%s',
-		'''velzy''');
+		'''public''');
 
 end;
 $$ language plpgsql STABLE;

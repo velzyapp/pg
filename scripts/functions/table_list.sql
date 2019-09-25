@@ -11,7 +11,7 @@ begin
 	SELECT relname::text as name,n_live_tup::int as rows
   FROM pg_stat_user_tables
 	where schemaname=%s',
-		'''velzy''');
+		'''public''');
 
 end;
 $$ language plpgsql STABLE;

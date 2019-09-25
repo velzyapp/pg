@@ -1,4 +1,4 @@
-create function get(collection varchar, did int)
+create function get(collection text, did int)
 returns table(
 id bigint,
 body jsonb,
@@ -9,7 +9,7 @@ as $$
 
 begin
 	return query
-	execute format('select id, body, created_at, updated_at from velzy.%s where id=%s limit 1',collection, did);
+	execute format('select id, body, created_at, updated_at from public.%s where id=%s limit 1',collection, did);
 end;
 
 $$ language plpgsql;

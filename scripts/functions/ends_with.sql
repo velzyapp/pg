@@ -1,10 +1,10 @@
 set search_path=velzy;
-drop function if exists ends_with(varchar, varchar, varchar, varchar);
+drop function if exists ends_with(text, text, text, text);
 create function ends_with(
-	collection varchar,
-	key varchar,
-	term varchar,
-	schema varchar default 'velzy'
+	collection text,
+	key text,
+	term text,
+	schema text default 'public'
 )
 returns table(
 	id bigint,

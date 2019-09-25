@@ -1,11 +1,12 @@
 set search_path=velzy;
 
 drop function if exists create_lookup_column(varchar,varchar, varchar);
-create function create_lookup_column(collection varchar, schema varchar, key varchar, out res bool)
+create function create_lookup_column(collection varchar, key varchar, out res bool)
 as $$
 declare
 	column_exists int;
-  lookup_key varchar := 'lookup_' || key;
+  lookup_key text := 'lookup_' || key;
+  schema text := 'public';
 begin
 		execute format('SELECT count(1)
 										FROM information_schema.columns

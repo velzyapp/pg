@@ -1,11 +1,12 @@
 set search_path=velzy;
-create function search(collection varchar, term varchar, schema varchar default 'velzy')
+create function search(collection text, term text)
 returns table(
 	result jsonb,
 	rank float4
 )
 as $$
 declare
+  schema text :='public';
 begin
 	return query
 	execute format('select body, ts_rank_cd(search,plainto_tsquery(''"%s"'')) as rank

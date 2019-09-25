@@ -23,7 +23,7 @@ test: clean install
 	psql $(DB) < test_data.sql
 
 build: functions
-	cp $(BUILD) ../$(CURDIR)/cli/db.sql
+	cp $(BUILD) ../$(CURRDIR)/cli/db.sql
 
 image:
 	docker build -t $(IMAGE) .

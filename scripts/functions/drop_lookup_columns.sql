@@ -1,8 +1,8 @@
 set search_path=velzy;
-drop function if exists drop_lookup_columns(varchar, varchar);
+drop function if exists drop_lookup_columns(text, text);
 create function drop_lookup_columns(
-	collection varchar,
-	schema varchar default 'velzy',
+	collection text,
+	schema text default 'public',
 	out res bool
 )
 as $$

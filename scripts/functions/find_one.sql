@@ -2,7 +2,7 @@ set search_path=velzy;
 create function find_one(
 	collection varchar,
 	term jsonb,
-	schema varchar default 'velzy'
+	schema text default 'public'
 )
 returns table(
 	id bigint,
