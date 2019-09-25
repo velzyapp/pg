@@ -24,7 +24,7 @@ begin
     execute format('create index idx_json_%s on public.%s using GIN(body jsonb_path_ops)',collection,collection);
 
 		execute format('create trigger %s_notify_change AFTER INSERT OR UPDATE OR DELETE ON public.%s
-		FOR EACH ROW EXECUTE PROCEDURE velzy.notify_change();', collection, schema, collection);
+		FOR EACH ROW EXECUTE PROCEDURE velzy.notify_change();', collection, collection);
 
     res := '{"created": true, "message": "Table created"}';
 

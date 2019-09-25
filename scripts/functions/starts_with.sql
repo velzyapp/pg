@@ -16,7 +16,7 @@ declare
 begin
 
 	-- ensure we have the lookup column created if it doesn't already exist
-	perform velzy.create_lookup_column(collection => collection, schema => schema, key => key);
+	perform velzy.create_lookup_column(collection => collection, key => key);
 
 	return query
 	execute format('select id, body, created_at from %s.%s where %s ilike %L',schema,collection,'lookup_' || key,search_param);

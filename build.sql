@@ -31,7 +31,7 @@ begin
     execute format('create index idx_json_%s on public.%s using GIN(body jsonb_path_ops)',collection,collection);
 
 		execute format('create trigger %s_notify_change AFTER INSERT OR UPDATE OR DELETE ON public.%s
-		FOR EACH ROW EXECUTE PROCEDURE velzy.notify_change();', collection, schema, collection);
+		FOR EACH ROW EXECUTE PROCEDURE velzy.notify_change();', collection, collection);
 
     res := '{"created": true, "message": "Table created"}';
 
@@ -143,7 +143,7 @@ declare
 begin
 
 	-- ensure we have the lookup column created if it doesn't already exist
-	perform velzy.create_lookup_column(collection => collection, schema => schema, key => key);
+	perform velzy.create_lookup_column(collection => collection, key => key);
 
 	return query
 	execute query_text;
@@ -383,7 +383,7 @@ declare
 begin
 
 	-- ensure we have the lookup column created if it doesn't already exist
-	perform velzy.create_lookup_column(collection => collection, schema => schema, key => key);
+	perform velzy.create_lookup_column(collection => collection, key => key);
 
 	return query
 	execute format('select id, body, created_at from %s.%s where %s ilike %L',schema,collection,'lookup_' || key,search_param);

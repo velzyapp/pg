@@ -18,7 +18,7 @@ declare
 begin
 
 	-- ensure we have the lookup column created if it doesn't already exist
-	perform velzy.create_lookup_column(collection => collection, schema => schema, key => key);
+	perform velzy.create_lookup_column(collection => collection, key => key);
 
 	return query
 	execute query_text;

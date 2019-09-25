@@ -17,8 +17,11 @@
   },
   "homepage": "https://github.com/velzyapp/pg#readme",
   "dependencies": {
-    "graphql": "^14.4.2",
+    "consola": "^2.10.1",
+    "graphql": "^14.5.7",
+    "graphql-iso-date": "^3.6.1",
     "graphql-tools": "^4.0.5",
+    "graphql-type-json": "^0.3.0",
     "pg-promise": "^9.0.2",
     "underscore": "^1.9.1",
     "underscore.string": "^3.3.5"

@@ -1,0 +1,3 @@
+after(() => {
+  Velzy.close();
+})

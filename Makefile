@@ -1,4 +1,4 @@
-DB=velzy
+DB=velzydb
 BUILD=${CURDIR}/build.sql
 DEPLOY=../db/db.sql
 FUNCTIONS=$(shell ls scripts/functions/*.sql)
