@@ -1,12 +1,9 @@
 const pgp = require('pg-promise')({});
 const db = pgp(process.env.DATABASE_URL);
 const Listener = require("./lib/listener");
-const Query = require("./lib/query");
 const assert = require("assert");
-const s = require("underscore.string");
 const graphQL = require("./lib/graphql");
 const consola = require('consola');
-//const searchFields = require("../../config/search");
 
 class Velzy {
   constructor() {
